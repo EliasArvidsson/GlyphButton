@@ -14,17 +14,20 @@ import org.jline.reader.UserInterruptException;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.InfoCmp.Capability;
+import org.jline.reader.History;
 
-import glyphbutton.widgets.ButtonWidget;
-import glyphbutton.widgets.Widget;
+import glyphbutton.styles.BorderStyles;
+import glyphbutton.window.*;
+
 
 public class TerminalGuiLogic {
 
     private final Terminal terminal;
     private final LineReader reader;
-    private final List<Widget> widgets = new ArrayList<>();
+    private final List<Window> windows = new ArrayList<>();
+    
 
-    private int focusedWidget = 0;
+    private int focusedWindow = 0;
     private Focus focus = Focus.PROMPT;
 
     public TerminalGuiLogic() throws IOException {
@@ -35,63 +38,65 @@ public class TerminalGuiLogic {
                 .build();
 
         terminal.puts(Capability.clear_screen);
-        initWidgets();
+        initWindows();
         setupKeyBindings();
     }
 
     private void setupKeyBindings() {
 
-        // Register custom widgets
-        reader.getWidgets().put("widget-down", () -> {
-            if (focus == Focus.WIDGETS && !widgets.isEmpty()) {
-                focusedWidget = (focusedWidget + 1) % widgets.size();
-
-                redrawWidgets();
-
-            }
-            return true;
-        });
-
-        reader.getWidgets().put("widget-up", () -> {
-            if (focus == Focus.WIDGETS && !widgets.isEmpty()) {
-                focusedWidget = (focusedWidget - 1 + widgets.size()) % widgets.size();
-
-                redrawWidgets();
-
-            }
-            return true;
-        });
-
         reader.getWidgets().put("switch-focus", () -> {
-            focus = (focus == Focus.PROMPT) ? Focus.WIDGETS : Focus.PROMPT;
+            focus = (focus == Focus.PROMPT) ? Focus.WINDOWS : Focus.PROMPT;
 
-            redrawWidgets();
+            drawWindows();
 
             return true;
         });
 
-        reader.getWidgets().put("widget-run", () -> {
-            if (focus == Focus.WIDGETS && !widgets.isEmpty()) {
-                widgets.get(focusedWidget).activate();
+        reader.getWidgets().put("page-down", () -> {
+            if (focus == Focus.WINDOWS) {
+                focusedWindow = (focusedWindow + 1) % windows.size();
+                drawWindows();
             }
             return true;
         });
 
-        // Bind the keys to the widgets using Reference
+        reader.getWidgets().put("page-up", () -> {
+            if (focus == Focus.WINDOWS) {
+                focusedWindow = (focusedWindow - 1 + windows.size()) % windows.size();
+                drawWindows();
+            }
+            return true;
+        });
+
+        // Bind the keys to the windows using Reference
         KeyMap<Binding> keyMap = reader.getKeyMaps().get(LineReader.MAIN);
 
-        keyMap.bind(new Reference("widget-down"), KeyMap.key(terminal, Capability.key_down));
-        keyMap.bind(new Reference("widget-up"), KeyMap.key(terminal, Capability.key_up));
-        keyMap.bind(new Reference("switch-focus"), "\t"); // Tab
-        keyMap.bind(new Reference("widget-run"), KeyMap.key(terminal, Capability.key_right));
+        
+        keyMap.bind(new Reference("switch-focus"), KeyMap.key(terminal, Capability.key_up));
+        keyMap.bind(new Reference("page-down"), KeyMap.key(terminal, Capability.key_npage));
+        keyMap.bind(new Reference("page-up"), KeyMap.key(terminal, Capability.key_ppage));
+
     }
 
     public void run() throws IOException {
+
+        try {
+                new ProcessBuilder("clear").inheritIO().start().waitFor();
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
+        
+
         while (true) {
 
             try {
 
-                redrawWidgets();
+                drawWindows();
 
                 String line = reader.readLine(getPrompt());
                 handleCommand(line);
@@ -103,83 +108,51 @@ public class TerminalGuiLogic {
     }
 
     private String getPrompt() {
-        return focus == Focus.PROMPT ? "> " : "(widgets) > ";
+        return focus == Focus.PROMPT ? "> " : "("+ windows.get(focusedWindow).getTitle() +") > ";
     }
 
-    private int lastWidgetLines = 0; // To keep track of the number of lines printed for widgets
+    
 
-    private void redrawWidgets() {
+    private int previousWindowHeight = 0;
 
-        if (widgets.isEmpty()) {
-            clearPreviousWidgets();
-            return;
-        }
-        ;
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("\n");
-        sb.append("┌─ Widgets ─────────────────────┐\n");
-
-        for (int i = 0; i < widgets.size(); i++) {
-            Widget w = widgets.get(i);
-            boolean selected = (i == focusedWidget && focus == Focus.WIDGETS);
-            sb.append(w.render(selected)).append("\n");
-        }
-
-        sb.append("└───────────────────────────────┘");
-        sb.append("     (Tab to switch focus, ↑/↓ to navigate, Enter to activate)");
-
-        String output = sb.toString();
-        int newLines = output.split("\n", -1).length;
-
-        // Clear previous widget lines
-        clearPreviousWidgets();
-
-        reader.printAbove(output);
-        lastWidgetLines = newLines;
-
-    }
-
-    private void clearPreviousWidgets() {
-        if (lastWidgetLines <= 0)
-            return;
-
-        int terminalHeight = terminal.getRows();
-
-        terminal.writer().print("\033[" + terminalHeight + "A");
-
-        for (int i = 0; i < lastWidgetLines; i++) {
-
-            terminal.writer().print("\033[1A\033[2K");
-
-        }
+    private void drawWindows() {
+        
+        Window window = windows.get(focusedWindow);
+        RenderWindow renderWindow = new RenderWindow(window.getBorderStyle(), window.getWidth(), window.getHeight(), reader, window.getWidgets(), terminal, focus, previousWindowHeight);
+        renderWindow.drawWindow();
         terminal.flush();
-        lastWidgetLines = 0;
+        previousWindowHeight = window.getHeight();
+
+        History history = reader.getHistory();
+        if (history != null) {
+            int historySize = history.size();
+            if (historySize > 0) {
+                String lastCommand = history.get(historySize - 1);
+                terminal.writer().println("Last command: " + lastCommand);
+            } else {
+                terminal.writer().println("No commands in history.");
+            }
+        }
+
     }
+
+    
 
     private void handleCommand(String line) throws IOException {
         // Handle the command entered in the prompt
         // For now, just echo it back
         terminal.writer().println("You entered: " + line);
         terminal.flush();
+        
     }
 
-    private void initWidgets() {
-        widgets.add(new ButtonWidget("help", "Help", () -> {
+    private void initWindows(){
 
-        }));
+        // Initialize windows with different border styles
+        windows.add(new Window(30, 10, "Window 1", BorderStyles.SINGLE));
+        windows.add(new Window(40, 15, "Window 2", BorderStyles.DOUBLE));
+        windows.add(new Window(50, 20, "Window 3", BorderStyles.ROUND));
 
-        widgets.add(new ButtonWidget("clearTerminal", "Clear", () -> {
-            try {
-                new ProcessBuilder("clear").inheritIO().start().waitFor();
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }));
     }
 
 }

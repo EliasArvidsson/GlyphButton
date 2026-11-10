@@ -5,6 +5,12 @@ public class ButtonWidget implements Widget {
     private final String label;
     private final Runnable onPress;
 
+    private int x;
+    private int y;
+
+    //private int color;
+    //private int backgroundColor;
+
     public ButtonWidget(String id, String label, Runnable onPress) {
         this.id = id;
         this.label = label;
@@ -14,9 +20,9 @@ public class ButtonWidget implements Widget {
     @Override
     public String render(boolean focused) {
         if (focused) {
-            return " ▶ [" + label + "]";
+            return "\033[30;104m" + label + "\033[0m";
         } else {
-            return "   [" + label + "]";
+            return label;
         }
     }
 
@@ -30,5 +36,26 @@ public class ButtonWidget implements Widget {
 
     public String getId() {
         return id;
+    }
+
+    public int getWidth() {
+        return label.length();
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public void setPosition(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    public String getLabel() {
+        return label;
     }
 }

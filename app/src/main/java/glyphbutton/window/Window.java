@@ -1,17 +1,25 @@
 package glyphbutton.window;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import glyphbutton.widgets.ButtonWidget;
+import glyphbutton.widgets.Widget;
+
 public class Window { // window class to represent a window in the terminal GUI. Work in progress.
 
     private int width;
     private int height;
     private String title;
-    private String style;
+    private int borderStyle;
+    private List<Widget> widgets = new ArrayList<>();
 
-    public Window(int width, int height, String title, String style) {
+    public Window(int width, int height, String title, int borderStyle) {
         this.width = width;
         this.height = height;
         this.title = title;
-        this.style = style;
+        this.borderStyle = borderStyle;
+        windowWidgets(); // Initialize window widgets (minimize and close buttons)
     }
 
     public int getWidth() {
@@ -38,12 +46,37 @@ public class Window { // window class to represent a window in the terminal GUI.
         this.title = title;
     }
 
-    public String getStyle() {
-        return style;
+    public int getBorderStyle() {
+        return borderStyle;
     }
 
-    public void setStyle(String style) {
-        this.style = style;
+    public void setBorderStyle(int borderStyle) {
+        this.borderStyle = borderStyle;
     }
 
+    private void windowWidgets() {
+
+        Widget minimizeButton = new ButtonWidget("minimizeWindow", "[-]", () -> {
+            // Minimize window logic here
+        });
+
+        minimizeButton.setPosition(width - 10, 0); // Position the minimize button at the top-right corner of the window
+        
+        Widget closeButton = new ButtonWidget("closeWindow", "[x]", () -> {
+            // Close window logic here
+        });
+        closeButton.setPosition(width - 4, 0); // Position the close button at the top-right corner of the window
+
+        widgets.add(minimizeButton);
+        widgets.add(closeButton);
+
+    }
+
+    public List<Widget> getWidgets() {
+        return widgets;
+    }
+
+    public void addWidget(Widget widget) {
+        widgets.add(widget);
+    }
 }
