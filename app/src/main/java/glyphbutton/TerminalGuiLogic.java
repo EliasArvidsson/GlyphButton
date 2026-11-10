@@ -29,7 +29,7 @@ public class TerminalGuiLogic {
 
     public TerminalGuiLogic() throws IOException {
         terminal = TerminalBuilder.builder().system(true).build();
-        
+
         reader = LineReaderBuilder.builder()
                 .terminal(terminal)
                 .build();
@@ -40,14 +40,14 @@ public class TerminalGuiLogic {
     }
 
     private void setupKeyBindings() {
-    
+
         // Register custom widgets
         reader.getWidgets().put("widget-down", () -> {
             if (focus == Focus.WIDGETS && !widgets.isEmpty()) {
                 focusedWidget = (focusedWidget + 1) % widgets.size();
-               
+
                 redrawWidgets();
-                
+
             }
             return true;
         });
@@ -55,37 +55,34 @@ public class TerminalGuiLogic {
         reader.getWidgets().put("widget-up", () -> {
             if (focus == Focus.WIDGETS && !widgets.isEmpty()) {
                 focusedWidget = (focusedWidget - 1 + widgets.size()) % widgets.size();
-                
+
                 redrawWidgets();
-                
+
             }
             return true;
         });
 
         reader.getWidgets().put("switch-focus", () -> {
             focus = (focus == Focus.PROMPT) ? Focus.WIDGETS : Focus.PROMPT;
-            
+
             redrawWidgets();
-            
-            return true;    
+
+            return true;
         });
 
-       
         reader.getWidgets().put("widget-run", () -> {
             if (focus == Focus.WIDGETS && !widgets.isEmpty()) {
                 widgets.get(focusedWidget).activate();
             }
             return true;
         });
-                   
-            
 
         // Bind the keys to the widgets using Reference
         KeyMap<Binding> keyMap = reader.getKeyMaps().get(LineReader.MAIN);
 
-        keyMap.bind(new Reference("widget-down"),  KeyMap.key(terminal, Capability.key_down));
-        keyMap.bind(new Reference("widget-up"),    KeyMap.key(terminal, Capability.key_up));
-        keyMap.bind(new Reference("switch-focus"), "\t");  // Tab
+        keyMap.bind(new Reference("widget-down"), KeyMap.key(terminal, Capability.key_down));
+        keyMap.bind(new Reference("widget-up"), KeyMap.key(terminal, Capability.key_up));
+        keyMap.bind(new Reference("switch-focus"), "\t"); // Tab
         keyMap.bind(new Reference("widget-run"), KeyMap.key(terminal, Capability.key_right));
     }
 
@@ -113,7 +110,11 @@ public class TerminalGuiLogic {
 
     private void redrawWidgets() {
 
-        if (widgets.isEmpty()) {clearPreviousWidgets(); return;};
+        if (widgets.isEmpty()) {
+            clearPreviousWidgets();
+            return;
+        }
+        ;
 
         StringBuilder sb = new StringBuilder();
         sb.append("\n");
@@ -127,7 +128,7 @@ public class TerminalGuiLogic {
 
         sb.append("└───────────────────────────────┘");
         sb.append("     (Tab to switch focus, ↑/↓ to navigate, Enter to activate)");
-        
+
         String output = sb.toString();
         int newLines = output.split("\n", -1).length;
 
@@ -140,16 +141,17 @@ public class TerminalGuiLogic {
     }
 
     private void clearPreviousWidgets() {
-        if (lastWidgetLines <= 0) return;
+        if (lastWidgetLines <= 0)
+            return;
 
         int terminalHeight = terminal.getRows();
 
         terminal.writer().print("\033[" + terminalHeight + "A");
 
         for (int i = 0; i < lastWidgetLines; i++) {
-            
+
             terminal.writer().print("\033[1A\033[2K");
-            
+
         }
         terminal.flush();
         lastWidgetLines = 0;
@@ -163,41 +165,8 @@ public class TerminalGuiLogic {
     }
 
     private void initWidgets() {
-        widgets.add(new ButtonWidget("uwu", "Help", () -> {
-            String uwu = "▓▓▓▓▓▓▓▒▓▓▒▒▒▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▒▒▒▒\n" + //
-                                "▓▓▓▓▓▓▓▒▓▓▒▒▒▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▒▒▒▒▒▒▒▓▒▒▒\n" + //
-                                "▓▓▓▓▓▓▓▓▓▓▒▒▒▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▒▒▒▒▒▒▒▒▒▒▒\n" + //
-                                "▓▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▓░░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▒▒▒▒▒▒▒▒▒▒▒▒▓▓▒░░▒▒▒▒▒▒▒▒▒▒▓▒▒▒▒▒▒▒▓▓▒▒\n" + //
-                                "▓▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒▒▒▒▒▒░░░▒▒▒▒▒▒░▓▒▒▒▒▒▒▒▓▓▓▒▒▒▒▒▒▒▒▒▒▒▓▒▒░░░▒▒▒▒▒▒▒▒▒▒▒▒▓▒▒▒▓▒▒▒▒\n" + //
-                                "▓▓▓▓▓▓▓▓▓▓▒▒▒▓▒▒▓▒▒▒░░░░░▒▒▒▓▒░▒▒▒▒▒▒▒▒▒▓▓▓▒▒▒▒▒▒▒▒▒▒▓▒░░░░░▒▒▓▒▒▒▒▒▒▒▒▒▓▒▒▓▓▒▒▒\n" + //
-                                "▓▓▓▓▓▓▓▓▓▓▒▒▓▓▒▒▒▒▒▒░░░░░▒▒▒▒▒░▓▓▓▒▒▒▒▒▒▓▓▓▓▒▒▓▓▓▓▓▓▓▓▒░░░░░░▒▒▓▒▒▒▒▒▒▒▒▒▓▓▒▓▒▒▒\n" + //
-                                "▓▓▓▓▓▓▓▓▓▓▒▒▓▒▒▓▓█████▒░░░▒▒▓▒░░░▓▒▒▒▒▒▒▒▓▓▓▒▒▒▒▒▒▒▒▒▒░░░░░░░░▒▒▒▒▒▒▒░▒▒▒▓▓▓▓▒▒▒\n" + //
-                                "▓▓▓▓▓▓▓▓▓▓▓▒▓▒▓▓▒███████▓▓▒▒▓▒▒▒░░▒▒▒▒▒▒▒▓▓▓▒▒▒▒▒▒▒▒▒▓▒▒▒░░░░░▒▒▒▒▒▒▒░░▒▒▒▓▓▓▒▒▒\n" + //
-                                "▓▓▓▓▓▓▓▓▓▓▓▒▓▓▒▓███▒▒▒███████▓▓░░▒░▒▒▒▒▒▒▓▓▒▒▒▒▒▒▒▒▒▒░░░░░░░▒▒▒▓████████▓▒▒▒▓▓▒▒\n" + //
-                                "▓▓▓█▓▓▓▓▓▓▓▒▓▓▒▒▒▒█▒▒░█░░▓██████▒░░▒▒▒▒▒▒▒▓░▒▒▒▒▒▒▒▓▓██████████████▓████▒▒▒▓▓▒▒▒\n" + //
-                                "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒░░█▒░░▒▓▒░▓▓██▓█▓░░░▒▒▒▒▒▒▒░░▒▒▒▒▒▒█▓▓█▓▒░▓██████▓▓▓█▓▓███▒▓▒▒▒▒\n" + //
-                                "▓▓▓▓▓▓▓▓▓█▓▓▓▓▓▒░░░▓░░░▒▓▒▓███▒▓▒░░░▒▒▒▒▒▒░░░▒▒▒▒▒▒▒░░▒█▒▒▓█░▓███▓▓▓█░░█▓▓▒▒▓▒▒▒\n" + //
-                                "▓▓▓▓▓█▓▓▓▓█▓█▓▓▓░░░░▓░░░░▓▒▓▓▓▒▓░░░░▒▒▒▒▓░░░░▒▒▒▒▒▒░░░░▓▓▓▓█████▓▓▓█▒ ░█░▒▒▓▒▒▒▒\n" + //
-                                "█▓▓▓▓▓▓▓▓▓▓▓█▓▓▓░░░░░░░░░░▓▓▓▓░░░░░░▒▒▒▒░░░░░░▒▒▒▒░░░░ ░▓▓▒▒▓▓▒▒░░ ░ ░▓░░▒▒▒▒▒▒▒\n" + //
-                                "▓▓▓▓▓▓▓▓▓▓▓▓▓█▓▓▓░░░░░░░░░▒▓▓▓▓░░░░░░▒▒░░░░░░░▒▒░░░░░░░░░ ▒▓▓▓▓▒░   ░░░░░▒▒▒▒▒▒▒\n" + //
-                                "▓█▓▓▓▓▓▓▓█▓▓▓▓▓▓▓░░░▒▒░▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▓▓▓▒▒░░░░░░░░░░▒▒▒▒▒▒▒\n" + //
-                                "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒▒▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ ░░░▒▒▒▒▒▒▒▒\n" + //
-                                "▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░▒▒▒▒▒▒▒▒▒▒▒▒░░░░░░░░░░░░░░░░░░░░░░░▒▒▒▒▒▒▒░░░░░░░░░░▒▒▒▒▒▒▒▒▒\n" + //
-                                "▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░▒▒▒▒▒▒▒▒▒▒░░░░░░▒░░░░░░░░░░░░░░░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓\n" + //
-                                "▒▓▓█▓▓▓▓▓▓█▓▓▓▓▓▓▓▓▓░░░▒▒▒▒▒▒▒░░░░░░░░░░░░░░░░░░░░░░░░▒▒▒▒▒▒▒▒▒▒▒▓▒▒▒▒▒▒▒▒▒▓▓▓▓▓\n" + //
-                                "▒▓▓▓█▓▓▓▓▓█▓▓▓▓▓▓▓▓▓▓▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓\n" + //
-                                "▓▓▓▓▓█▓▓▓▓▓▓▓█▓▓▓▓▓▓▓▓▓▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▒▒░▓▓▓▓▓▓▓▓▓▓▓▓\n" + //
-                                "▓▓▓▓▓▓█▓▓▓▓█▓█▓▓▓▓▓▒▓▓▓▓▓▓▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓\n" + //
-                                "▓▓▓▓▓▓▓█▓▓▓▓▓█▓▓▓▓▒▒▒█▓▓▓▓▓▓▓▓▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒████▓▓▓▓▓▓▓▓▓▓▓▓▓\n" + //
-                                "▓▓▓▓▓▓▓▓█▓▓▓▓▓▓▓▓▓▒▒▒▒▓▓▓█▓▓▓▓███▒░░░▒▒▒░░░░░░░░░░░░░░░░░▒▒▒▒▒██████▓▓▓▓▓▓▓▓▓▓▓▓\n" + //
-                                "▓▓▓▓▓▓▓▓▓▓█▓▓▓█▓▓▓▒▒▒▒▓▓▓▓██████████▒░░░░░░░░░░░░░░░▒▒▓▒▒▒▒▒▒▒████████▓▓▓▓▓▓▓▓▓▓\n" + //
-                                "▓▓▓▓▓▓▓▓▓▓▓▓▓▓█▓▓▓▒▒▒▒▒▓▓▓█████████████▒░░░░░▒▒▒▓▓▒▒▒▒▒▒▒▒▒▒▒▒▓████████▓▓▓▓▓▓▓▓▒\n" + //
-                                "▓▓▓▓▓▓▓▓▓▓▓▓▓███▓▓▒▒▒▒▒▒▓▓██████████████████▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒█████████▓▓▓▓▓▓▓▒▒\n" + //
-                                "▓▓▓▓▓▓▓▓▓▓▓▓████▓▓▒▒▒▒▒▒▓▓████████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒█████████▓▓▓▓▓▓▓▒▒▒\n" + //
-                                "▓▓▓▓▓▓▓▓▓▓▓██████▓▓▒▒▒▒▒▒▓████████████▒▒▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██████████▓▓▓▓▓▓▒▒▒▓\n" + //
-                                "▓▓▓▓▓▓▓▓▓▓▓██████▓▓▒▒▒▒▒▒▒▓███████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒░░▓█████████▓▓▓█▓▓▒▒▒▒▒\n";
+        widgets.add(new ButtonWidget("help", "Help", () -> {
 
-            terminal.writer().println(uwu);
         }));
 
         widgets.add(new ButtonWidget("clearTerminal", "Clear", () -> {
@@ -212,5 +181,5 @@ public class TerminalGuiLogic {
             }
         }));
     }
-    
+
 }
