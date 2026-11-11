@@ -15,7 +15,6 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.InfoCmp.Capability;
 import org.jline.reader.History;
-import org.jline.reader.History.Entry;
 
 import glyphbutton.styles.BorderStyles;
 import glyphbutton.window.*;
