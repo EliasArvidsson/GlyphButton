@@ -18,7 +18,7 @@ public class ButtonWidget implements Widget {
     }
 
     @Override
-    public String render(boolean focused) {
+    public String draw(boolean focused) {
         if (focused) {
             return "\033[30;104m" + label + "\033[0m";
         } else {

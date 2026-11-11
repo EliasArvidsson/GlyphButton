@@ -18,7 +18,7 @@ public interface Widget {
     // void setBackgroundColor(int color);
     // void setBorderColor(int color);
 
-    String render(boolean focused);
+    String draw(boolean focused);
 
     void activate();
 }
