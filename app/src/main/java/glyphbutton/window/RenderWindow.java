@@ -3,8 +3,8 @@ package glyphbutton.window;
 import glyphbutton.Focus;
 import glyphbutton.styles.*;
 import glyphbutton.widgets.Widget;
-import glyphbutton.TerminalGuiLogic;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.jline.keymap.KeyMap;
@@ -13,7 +13,6 @@ import org.jline.reader.LineReader;
 import org.jline.reader.Reference;
 import org.jline.terminal.Terminal;
 import org.jline.utils.InfoCmp.Capability;
-
 
 public class RenderWindow {
 
@@ -24,10 +23,9 @@ public class RenderWindow {
     private final List<Widget> widgets;
     private final Terminal terminal;
     private final Focus focus;
-    private int previousWindowHeight = 0;
-    
 
-    public RenderWindow(int borderStyle, int width, int height, LineReader reader, List<Widget> widgets, Terminal terminal, Focus focus, int previousWindowHeight) {
+    public RenderWindow(int borderStyle, int width, int height, LineReader reader, List<Widget> widgets,
+            Terminal terminal, Focus focus) {
         this.borderStyle = borderStyle;
         this.width = width;
         this.height = height;
@@ -35,18 +33,18 @@ public class RenderWindow {
         this.widgets = widgets;
         this.terminal = terminal;
         this.focus = focus;
-        this.previousWindowHeight = previousWindowHeight;
 
         setupKeyBindings(focus);
     }
 
     public void drawWindow() {
+        clearPreviousWindow();
         borderBuilder();
         widgetBuilder();
     }
-    
+
     private void borderBuilder() {
-        
+
         char[] borderCharacters = BorderStyles.getBorderCharacters(borderStyle).toCharArray();
 
         StringBuilder sb = new StringBuilder();
@@ -76,42 +74,32 @@ public class RenderWindow {
 
         String output = sb.toString();
 
-        clearPreviousWindow(height);
         reader.printAbove(output);
 
     }
 
-    private void clearPreviousWindow(int height) {
+    /**
+     * Clears the previous window from the terminal.
+     * 
+     * @param height
+     */
+    private void clearPreviousWindow() {
 
-        if (height <= 0) return;
-
-        if (height > previousWindowHeight) {
-            height = previousWindowHeight;
+        try {
+            new ProcessBuilder("clear").inheritIO().start().waitFor();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
-
-        height += 4; // Add 2 for the top and bottom borders
-
-        // Move to the beginning of the previous window
-        terminal.writer().print("\033[" + height + "A");
-
-        // Clear each line occupied by the window
-        for (int i = 0; i < height; i++) {
-            terminal.writer().print("\033[2K");
-
-            if (i < height - 1) {
-                terminal.writer().print("\033[1B");
-            }
-        }
-
-        // Return cursor to the starting position
-        terminal.writer().print("\033[" + (height) + "A");
 
         terminal.flush();
     }
 
     private void widgetBuilder() {
 
-        
         for (int i = 0; i < widgets.size(); i++) {
             Widget widget = widgets.get(i);
 
@@ -122,8 +110,7 @@ public class RenderWindow {
 
             // Move cursor to widget position
             terminal.writer().print(
-                "\033[" + (y + 1) + ";" + (x + 1) + "H"
-            );
+                    "\033[" + (y + 1) + ";" + (x + 1) + "H");
 
             // Render widget
             terminal.writer().print(renderedWidget);
@@ -133,41 +120,36 @@ public class RenderWindow {
         terminal.writer().print("\033[" + (height + 3) + ";1H");
 
         terminal.flush();
-        
+
     }
 
     private int focusedWidget = 0;
-    
 
     private void setupKeyBindings(Focus focus) {
-
-        
 
         reader.getWidgets().put("activate-widget", () -> {
             if (focus == Focus.WINDOWS) {
                 Widget widget = widgets.get(focusedWidget);
                 widget.activate();
                 drawWindow();
-                
+
             }
             return true;
         });
 
-    reader.getWidgets().put("switch-widget", () -> {
-        if (focus == Focus.WINDOWS) {
-            focusedWidget = (focusedWidget - 1 + widgets.size()) % widgets.size();
-            drawWindow();
-        }
-        return true;
-    });   
-    
+        reader.getWidgets().put("switch-widget", () -> {
+            if (focus == Focus.WINDOWS) {
+                focusedWidget = (focusedWidget - 1 + widgets.size()) % widgets.size();
+                drawWindow();
+            }
+            return true;
+        });
 
-    // Bind the keys to the windows using Reference
-    KeyMap<Binding> keyMap = reader.getKeyMaps().get(LineReader.MAIN);
+        // Bind the keys to the windows using Reference
+        KeyMap<Binding> keyMap = reader.getKeyMaps().get(LineReader.MAIN);
 
-        
-    keyMap.bind(new Reference("switch-widget"),"\t");
-    keyMap.bind(new Reference("activate-widget"), KeyMap.key(terminal, Capability.key_right));
+        keyMap.bind(new Reference("switch-widget"), "\t");
+        keyMap.bind(new Reference("activate-widget"), KeyMap.key(terminal, Capability.key_right));
 
     }
 

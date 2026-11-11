@@ -14,6 +14,14 @@ public class Window { // window class to represent a window in the terminal GUI.
     private int borderStyle;
     private List<Widget> widgets = new ArrayList<>();
 
+    /**
+     * Constructor for the Window class.
+     * 
+     * @param width
+     * @param height
+     * @param title
+     * @param borderStyle
+     */
     public Window(int width, int height, String title, int borderStyle) {
         this.width = width;
         this.height = height;
@@ -61,7 +69,7 @@ public class Window { // window class to represent a window in the terminal GUI.
         });
 
         minimizeButton.setPosition(width - 10, 0); // Position the minimize button at the top-right corner of the window
-        
+
         Widget closeButton = new ButtonWidget("closeWindow", "[x]", () -> {
             // Close window logic here
         });

@@ -8,8 +8,8 @@ public class ButtonWidget implements Widget {
     private int x;
     private int y;
 
-    //private int color;
-    //private int backgroundColor;
+    // private int color;
+    // private int backgroundColor;
 
     public ButtonWidget(String id, String label, Runnable onPress) {
         this.id = id;
@@ -27,11 +27,10 @@ public class ButtonWidget implements Widget {
     }
 
     @Override
-    public Void activate() {
+    public void activate() {
         if (onPress != null) {
             onPress.run();
         }
-        return null;
     }
 
     public String getId() {
