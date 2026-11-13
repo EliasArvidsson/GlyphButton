@@ -1,16 +1,16 @@
 package glyphbutton.draw;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.jline.reader.History;
 import org.jline.reader.LineReader;
 import org.jline.terminal.Terminal;
-import org.jline.utils.InfoCmp.Capability;
 
 import glyphbutton.Focus;
+import glyphbutton.draw.WindowPlacement.PlacementResult;
 import glyphbutton.window.Window;
-import glyphbutton.widgets.*;
 
 public class DrawToTerminal {
 
@@ -18,41 +18,86 @@ public class DrawToTerminal {
     private final LineReader reader;
     private List<Window> windows;
     private Focus focus;
-    private final WindowBorderBuilder wbb;
-    private String windowBorders;
-    private final int margin;
-    private int windowsAmount;
+    private final WindowBuilder wb;
+    private final WindowPlacement wp;
+    private final WorkSpaceBuilder wsb;
+    private int margin;
     private int focusedWindow;
     private int focusedWidget;
+    private boolean optimizeSpace = false;
+    private int maxHeight;
 
-    public DrawToTerminal(Terminal terminal, LineReader reader, int margin) {
+    public DrawToTerminal(Terminal terminal, LineReader reader) {
 
         this.terminal = terminal;
         this.reader = reader;
-        wbb = new WindowBorderBuilder();
-        this.margin = margin;
+        wb = new WindowBuilder();
+        wp = new WindowPlacement();
+        wsb = new WorkSpaceBuilder();
     }
 
-    public void draw(List<Window> windows, Focus focus, int focusedWindow, int focusedWidget) {
-        this.windowsAmount = windows.size();
+    public void draw(List<Window> windows, Focus focus, int focusedWindow, int focusedWidget, boolean optimizeSpace, int margin) {
         this.focus = focus;
         this.focusedWindow = focusedWindow;
         this.focusedWidget = focusedWidget;
+        this.optimizeSpace = optimizeSpace;
+        this.margin = margin;
+        this.windows = windows;
 
         clearTerminal();
+        drawWorkSpace();
+        drawHistory();
+        
+        terminal.flush();
+    }
 
-        // If the requested window configuration is the same as the one before, print the old one
-        if (windows == this.windows) {
-            reader.printAbove(windowBorders);
-        } else {
-            drawBorder(windows);
-            this.windows = windows;
+    private void drawWorkSpace() {
+
+        int windowAmount = windows.size();
+
+        String[][] builtWindows = new String[windowAmount][];
+
+        int[] widths = new int[windowAmount];
+        int[] height = new int[windowAmount];
+        for (int i = 0; i < windowAmount; i++) {
+            builtWindows[i] = wb.buildWindow(windows.get(i).getWidth(), windows.get(i).getHeight(), 
+            windows.get(i).getBorderStyle(), windows.get(i).getWidgets(), (focusedWindow == i), focusedWidget); //
+            widths[i] = windows.get(i).getWidth() + 2;
+            height[i] = windows.get(i).getHeight() + 2;
         }
 
-        drawWidget();
-        drawHistory();
+        int maxWidth = terminal.getSize().getColumns() - 5;
+        maxHeight = terminal.getSize().getRows() - 10;
 
-        terminal.puts(Capability.cursor_address, 22, 0);
+        PlacementResult pr = wp.place(widths, height, maxWidth, maxHeight, margin, optimizeSpace);
+
+        ArrayList<Integer> x = new ArrayList<Integer>();
+        ArrayList<Integer> y = new ArrayList<Integer>();
+        
+        // not positive that this will work :(   update: it worked :)
+        ArrayList<String[]> s = new ArrayList<>();
+
+        for (int i = 0; i < pr.x().length; i++) {
+
+            if (pr.x()[i] != null) {
+                x.add(pr.x()[i].intValue());
+                y.add(pr.y()[i].intValue());
+                s.add(builtWindows[i]);
+            } else {
+                // window did not have space
+            }
+        }
+
+        int[] xx = x.stream().mapToInt(Integer::intValue).toArray();
+        int[] yy = y.stream().mapToInt(Integer::intValue).toArray();
+        String[][] ss = new String[s.size()][];
+        for (int i = 0; i < s.size(); i++) {
+            ss[i] = s.get(i);
+        }
+
+        String workSpace = wsb.buildWorkSpace(ss, xx, yy, maxWidth, maxHeight, 4);
+
+        reader.printAbove(workSpace);
         terminal.flush();
     }
 
@@ -67,64 +112,6 @@ public class DrawToTerminal {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Draw borders
-     * @param windows
-     */
-    private void drawBorder(List<Window> windows) {
-
-        int[] width = new int[windowsAmount];
-        int[] height = new int[windowsAmount];
-        int[] borderStyle = new int[windowsAmount];
-        int[] offsetY = new int[windowsAmount];
-
-        for(int i = 0; i < windowsAmount; i++) {
-            width[i] = windows.get(i).getWidth();
-            height[i] = windows.get(i).getHeight();
-            borderStyle[i] = windows.get(i).getBorderStyle();
-            offsetY[i] = windows.get(i).getOffsetY();
-        }
-
-        windowBorders = wbb.buildBorder(width, height, margin, borderStyle, offsetY);
-        reader.printAbove(windowBorders);
-    }
-
-    private void drawWidget() {
-
-        for(int p = 0; p < windowsAmount; p++) {
-            Window w = windows.get(p);
-
-            //
-            for (int i = 0; i < w.getWidgets().size(); i++) {
-
-                Widget wid = w.getWidgets().get(i);
-
-                String drawnWidget = wid.draw(focus == Focus.WINDOWS && (p == focusedWindow && i == focusedWidget));
-
-                int x;
-                if (p > 0) {
-                    x = 0;
-                    for (int o = 0; o < p; o++) {
-                        Window ww = windows.get(o);
-                        x += ww.getWidth() + margin + 2;
-                    }
-                    x += wid.getX();
-
-                } else {x = wid.getX();}
-                
-                // Move cursor to widget position
-                terminal.writer().print(
-                    "\033[" + (wid.getY() + 1) + ";" + (x + 1) + "H");
-
-                terminal.writer().print(drawnWidget);
-            }
-        }
-        // Move cursor below the rendered window
-        terminal.writer().print("\033[" + (23) + ";1H");
-
-        terminal.flush();
     }
 
     private void drawHistory() {

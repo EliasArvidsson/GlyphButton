@@ -33,6 +33,8 @@ public class TerminalGuiLogic {
 
     private int margin = 1;
 
+    private DrawToTerminal dtt;
+
     public TerminalGuiLogic() throws IOException {
         terminal = TerminalBuilder.builder().system(true).build();
 
@@ -46,6 +48,7 @@ public class TerminalGuiLogic {
         this.keyMap = reader.getKeyMaps().get(LineReader.MAIN);
         setupWindowKeyBindings();
         setupWidgetKeyBindings();
+        dtt = new DrawToTerminal(terminal, reader);
     }
 
     private void clearScreen() {
@@ -139,9 +142,7 @@ public class TerminalGuiLogic {
 
     private void drawWindows() {
 
-        DrawToTerminal dtt = new DrawToTerminal(terminal, reader, margin);
-
-        dtt.draw(windows, focus, focusedWindow, focusedWidget);
+        dtt.draw(windows, focus, focusedWindow, focusedWidget, false, margin);
 
     }
 
@@ -154,11 +155,11 @@ public class TerminalGuiLogic {
     private void initWindows() {
 
         // Initialize windows with different border styles
-        windows.add(new Window(30, 10, "Window 1", BorderStyles.SINGLE));
+        
+        windows.add(new Window(130, 4, "Window 1", BorderStyles.SINGLE));
         windows.add(new Window(40, 15, "Window 2", BorderStyles.DOUBLE));
         windows.add(new Window(50, 20, "Window 3", BorderStyles.ROUND));
-        windows.add(new Window(50, 13, "Window 4", BorderStyles.HEAVY));
-        
+        windows.add(new Window(25, 24, "Window 4", BorderStyles.HEAVY));
 
     }
 

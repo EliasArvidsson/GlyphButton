@@ -5,8 +5,12 @@ public class ButtonWidget implements Widget {
     private final String label;
     private final Runnable onPress;
 
+    private boolean focused = false;
+
     private int x;
     private int y;
+
+    private boolean onWindowBorder = false;
 
     // private int color;
     // private int backgroundColor;
@@ -18,7 +22,17 @@ public class ButtonWidget implements Widget {
     }
 
     @Override
-    public String draw(boolean focused) {
+    public boolean focused() {
+        return focused;
+    }
+
+    @Override
+    public void setFocused(boolean focused) {
+        this.focused = focused;
+    }
+
+    @Override
+    public String draw() {
         if (focused) {
             return "\033[30;104m" + label + "\033[0m";
         } else {
@@ -57,4 +71,13 @@ public class ButtonWidget implements Widget {
     public String getLabel() {
         return label;
     }
+
+    public boolean onWindowBorder() {
+        return onWindowBorder;
+    }
+
+    public void setOnWindowBorder(boolean onWindowBorder) {
+        this.onWindowBorder = onWindowBorder;
+    }
+
 }

@@ -101,16 +101,18 @@ public class Window { // window class to represent a window in the terminal GUI.
      */
     private void windowWidgets() {
 
-        Widget minimizeButton = new ButtonWidget("minimizeWindow", "[-]", () -> {
+        ButtonWidget minimizeButton = new ButtonWidget("minimizeWindow", "[-]", () -> {
             // Minimize window logic here
         });
 
         minimizeButton.setPosition(width - 10, 0); // Position the minimize button at the top-right corner of the window
+        minimizeButton.setOnWindowBorder(true);
 
-        Widget closeButton = new ButtonWidget("closeWindow", "[x]", () -> {
+        ButtonWidget closeButton = new ButtonWidget("closeWindow", "[x]", () -> {
             // Close window logic here
         });
         closeButton.setPosition(width - 4, 0); // Position the close button at the top-right corner of the window
+        closeButton.setOnWindowBorder(true);
 
         widgets.add(minimizeButton);
         widgets.add(closeButton);
