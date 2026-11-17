@@ -30,6 +30,7 @@ public class WorkSpaceBuilder {
         buildWindowMiddle();
         buildWindowBottom();
         
+        
 
         return sb.toString();
 

@@ -61,7 +61,7 @@ public class DrawToTerminal {
         int[] height = new int[windowAmount];
         for (int i = 0; i < windowAmount; i++) {
             builtWindows[i] = wb.buildWindow(windows.get(i).getWidth(), windows.get(i).getHeight(), 
-            windows.get(i).getBorderStyle(), windows.get(i).getWidgets(), (focusedWindow == i), focusedWidget); //
+            windows.get(i).getBorderStyle(), windows.get(i).getWidgets(), (focusedWindow == i), focusedWidget);
             widths[i] = windows.get(i).getWidth() + 2;
             height[i] = windows.get(i).getHeight() + 2;
         }

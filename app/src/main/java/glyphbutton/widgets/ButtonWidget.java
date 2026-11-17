@@ -2,8 +2,8 @@ package glyphbutton.widgets;
 
 public class ButtonWidget implements Widget {
     private final String id;
-    private final String label;
-    private final Runnable onPress;
+    private String label;
+    private Runnable onPress;
 
     private boolean focused = false;
 
@@ -15,10 +15,14 @@ public class ButtonWidget implements Widget {
     // private int color;
     // private int backgroundColor;
 
-    public ButtonWidget(String id, String label, Runnable onPress) {
+    /**
+     * 
+     * @param id
+     * @param label
+     */
+    public ButtonWidget(String id, String label) {
         this.id = id;
         this.label = label;
-        this.onPress = onPress;
     }
 
     @Override
@@ -47,6 +51,10 @@ public class ButtonWidget implements Widget {
         }
     }
 
+    public void setOnPress(Runnable onPress) {
+        this.onPress = onPress;
+    }
+
     public String getId() {
         return id;
     }
@@ -70,6 +78,10 @@ public class ButtonWidget implements Widget {
 
     public String getLabel() {
         return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
     }
 
     public boolean onWindowBorder() {

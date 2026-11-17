@@ -17,6 +17,7 @@ import org.jline.utils.InfoCmp.Capability;
 
 import glyphbutton.draw.DrawToTerminal;
 import glyphbutton.styles.BorderStyles;
+import glyphbutton.widgets.ButtonWidget;
 import glyphbutton.window.*;
 
 public class TerminalGuiLogic {
@@ -102,7 +103,7 @@ public class TerminalGuiLogic {
         reader.getWidgets().put("activate-widget", () -> {
             if (focus == Focus.WINDOWS) {
                 
-                windows.get(focusedWindow).getWidgets().get(focusedWindow).activate();
+                windows.get(focusedWindow).getWidgets().get(focusedWidget).activate();
                 drawWindows();
 
             }
@@ -112,14 +113,18 @@ public class TerminalGuiLogic {
         reader.getWidgets().put("switch-widget", () -> {
             if (focus == Focus.WINDOWS) {
                 int ws = windows.get(focusedWindow).getWidgets().size();
-                focusedWidget = (focusedWidget - 1 + ws) % ws;
+                
+                if (!windows.get(focusedWindow).getMinimized())
+                    focusedWidget = (focusedWidget + 1) % ws;
+                else focusedWidget = (focusedWidget + 1) % 2;
+
                 drawWindows();
             }
             return true;
         });
 
-        keyMap.bind(new Reference("switch-widget"), "\t");
         keyMap.bind(new Reference("activate-widget"), KeyMap.key(terminal, Capability.key_right));
+        keyMap.bind(new Reference("switch-widget"), "\t");
 
     }
 
@@ -146,20 +151,41 @@ public class TerminalGuiLogic {
 
     }
 
-
-
     private void handleCommand(String line) throws IOException {
         // Handle the command entered in the prompt
     }
 
-    private void initWindows() {
+    public void addWindow(Window window) {
+        window.setOnClose(() -> closeWindow(window));
+        windows.add(window);
+    }
 
-        // Initialize windows with different border styles
-        
-        windows.add(new Window(130, 4, "Window 1", BorderStyles.SINGLE));
-        windows.add(new Window(40, 15, "Window 2", BorderStyles.DOUBLE));
-        windows.add(new Window(50, 20, "Window 3", BorderStyles.ROUND));
-        windows.add(new Window(25, 24, "Window 4", BorderStyles.HEAVY));
+    private void closeWindow(Window window) {
+        windows.remove(window);
+
+        if (windows.isEmpty()) {
+            focusedWindow = 0;
+            focus = Focus.PROMPT;
+        } else if(focusedWindow >= windows.size()) {
+            focusedWindow = windows.size() - 1;
+        }
+    }
+
+    private void initWindows() {
+ 
+        Window window1 = new Window(130, 4, "Window 1");
+
+        window1.setBorderStyle(BorderStyles.SINGLE);
+
+        ButtonWidget buttonWidget = new ButtonWidget("button", " --- ");
+        buttonWidget.setPosition(12, 3);
+        buttonWidget.setOnPress(() -> {
+            buttonWidget.setLabel(" XXX ");
+        });
+
+        window1.addWidget(buttonWidget);
+
+        addWindow(window1);
 
     }
 

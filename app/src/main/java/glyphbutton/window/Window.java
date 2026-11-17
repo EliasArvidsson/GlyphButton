@@ -11,10 +11,9 @@ public class Window { // window class to represent a window in the terminal GUI.
     private int width;
     private int height;
     private String title;
-    private int borderStyle;
+    private int borderStyle = 1;
     private List<Widget> widgets = new ArrayList<>();
-
-    private int offsetY = 0;
+    private boolean minimized = false;
 
     /**
      * Constructor for the Window class.
@@ -24,13 +23,21 @@ public class Window { // window class to represent a window in the terminal GUI.
      * @param title
      * @param borderStyle
      */
-    public Window(int width, int height, String title, int borderStyle) {
+    public Window(int width, int height, String title) {
         this.width = width;
         this.height = height;
         this.title = title;
-        this.borderStyle = borderStyle;
         windowWidgets(); // Initialize window widgets (minimize and close buttons)
     }
+
+    private ButtonWidget closeButton;
+
+    public void setOnClose(Runnable onClose) {
+        if (closeButton != null)
+            closeButton.setOnPress(onClose);
+    }
+
+    private ButtonWidget minimizeButton;
 
     /**
      * Returns the (inner) width of the window
@@ -45,7 +52,10 @@ public class Window { // window class to represent a window in the terminal GUI.
      * @return
      */
     public int getHeight() {
-        return height;
+        if (!minimized)
+            return height;
+        else return 0;
+        
     }
 
     /**
@@ -101,22 +111,31 @@ public class Window { // window class to represent a window in the terminal GUI.
      */
     private void windowWidgets() {
 
-        ButtonWidget minimizeButton = new ButtonWidget("minimizeWindow", "[-]", () -> {
-            // Minimize window logic here
-        });
+        minimizeButton = new ButtonWidget("minimizeWindow", "[-]");
 
         minimizeButton.setPosition(width - 10, 0); // Position the minimize button at the top-right corner of the window
         minimizeButton.setOnWindowBorder(true);
+        minimizeButton.setOnPress(this::minimizeWindow);
 
-        ButtonWidget closeButton = new ButtonWidget("closeWindow", "[x]", () -> {
-            // Close window logic here
-        });
+        closeButton = new ButtonWidget("closeWindow", "[x]");
         closeButton.setPosition(width - 4, 0); // Position the close button at the top-right corner of the window
         closeButton.setOnWindowBorder(true);
 
         widgets.add(minimizeButton);
         widgets.add(closeButton);
 
+    }
+
+    public boolean getMinimized() {
+        return minimized;
+    }
+
+    public void minimizeWindow() {
+        if (!minimized) {
+            minimized = true;
+        } else {
+            minimized = false;
+        }
     }
 
     /**
@@ -135,20 +154,4 @@ public class Window { // window class to represent a window in the terminal GUI.
         widgets.add(widget);
     }
 
-    /**
-     * Sets the offset that the window will have from the top corner
-     * 
-     * @param y
-     */
-    public void setOffsetY(int y) {
-        offsetY = y;
-    }
-
-    /**
-     * Returns the vertical offset, Y
-     * @return
-     */
-    public int getOffsetY() {
-        return offsetY;
-    }
 }
