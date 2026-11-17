@@ -30,10 +30,12 @@ public class WindowBuilder {
         this.height = height;
         this.widgets = widgets;
 
-        if (isFocused) {
+        for (Widget w : widgets) {
+            w.setFocused(false);
+        }
+
+        if (isFocused && focusedWidget < widgets.size()) {
             widgets.get(focusedWidget).setFocused(true);
-        } else {
-            widgets.get(focusedWidget).setFocused(false);
         }
 
         window = new String[height + 2];

@@ -35,14 +35,19 @@ public class WorkSpaceBuilder {
 
     }
 
+    private int visibleLength(String s) {
+        return s.replaceAll("\033\\[[0-9;]*m", "").length();
+    }
+
     private int buildWindow(int x, int y) {
 
         for (int i = 0; i < windows.length; i++) {
 
           if (yWindow[i] <= y && windows[i].length > y - yWindow[i] && xWindow[i] == x) {
 
-            sb.append(windows[i][y - yWindow[i]]);
-            return windows[i][y - yWindow[i]].length() - 1;
+            String line = windows[i][y - yWindow[i]];
+            sb.append(line);
+            return visibleLength(line) - 1;
           }
         }
         sb.append("~");
