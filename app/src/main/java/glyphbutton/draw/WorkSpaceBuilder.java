@@ -1,5 +1,8 @@
 package glyphbutton.draw;
 
+
+
+
 import glyphbutton.styles.BorderStyles;
 
 public class WorkSpaceBuilder {
@@ -14,7 +17,7 @@ public class WorkSpaceBuilder {
     private char[] borderCharacters;
     private StringBuilder sb;
     
-    public String buildWorkSpace(String[][] windows, int[] xWindow, int[] yWindow, int maxWidth, int maxHeight, int borderStyle) {
+    public String buildWorkSpace(String[][] windows, int[] xWindow, int[] yWindow, int maxWidth, int maxHeight, int borderStyle, OverlayRecord or) {
 
         this.windows = windows;
         this.xWindow = xWindow;
@@ -30,14 +33,32 @@ public class WorkSpaceBuilder {
         buildWindowMiddle();
         buildWindowBottom();
         
-        
-
         return sb.toString();
-
     }
 
     private int visibleLength(String s) {
         return s.replaceAll("\033\\[[0-9;]*m", "").length();
+    }
+
+    private int buildLogic(int x, int y) {
+
+        buildWindow(x, y);
+
+        
+        for (int i = 0; i < windows.length; i++) {
+
+          if (yWindow[i] <= y && windows[i].length > y - yWindow[i] && xWindow[i] == x) {
+
+          }
+          
+        }
+
+    }
+
+    private int buildOverlay(int x, int y) {
+
+        return 1;
+
     }
 
     private int buildWindow(int x, int y) {

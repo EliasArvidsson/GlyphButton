@@ -1,13 +1,15 @@
-package glyphbutton.window;
+package glyphbutton.panel.window;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import glyphbutton.panel.Panel;
 import glyphbutton.widgets.ButtonWidget;
 import glyphbutton.widgets.Widget;
 
-public class Window { // window class to represent a window in the terminal GUI. Work in progress.
+public class Window extends Panel{
 
+    private ButtonWidget minimizeButton;
     private int width;
     private int height;
     private String title;
@@ -24,6 +26,7 @@ public class Window { // window class to represent a window in the terminal GUI.
      * @param borderStyle
      */
     public Window(int width, int height, String title) {
+        super(height, height, title);
         this.width = width;
         this.height = height;
         this.title = title;
@@ -36,8 +39,6 @@ public class Window { // window class to represent a window in the terminal GUI.
         if (closeButton != null)
             closeButton.setOnPress(onClose);
     }
-
-    private ButtonWidget minimizeButton;
 
     /**
      * Returns the (inner) width of the window

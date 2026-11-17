@@ -5,7 +5,7 @@ import java.util.List;
 import glyphbutton.styles.BorderStyles;
 import glyphbutton.widgets.Widget;
 
-public class WindowBuilder {
+public class panelBuilder {
     
     private char[] borderCharacters;
     private int width;
@@ -22,7 +22,7 @@ public class WindowBuilder {
      * @param widgets
      * @return
      */
-    public String[] buildWindow(int width, int height, int borderStyle, List<Widget> widgets, boolean isFocused, int focusedWidget) {
+    public String[] buildPanel(int width, int height, int borderStyle, List<Widget> widgets, boolean isFocused, int focusedWidget) {
 
         borderCharacters = BorderStyles.getBorderCharacters(borderStyle).toCharArray();
 
@@ -40,9 +40,9 @@ public class WindowBuilder {
 
         window = new String[height + 2];
 
-        buildWindowTop();
-        buildWindowMiddle();
-        buildWindowBottom();
+        buildPanelTop();
+        buildPanelMiddle();
+        buildPanelBottom();
 
         return window;
     }
@@ -77,7 +77,7 @@ public class WindowBuilder {
         return 0;
     }
 
-    private void buildWindowTop() {
+    private void buildPanelTop() {
         sb = new StringBuilder();
 
         sb.append(borderCharacters[0]); // Top-left corner
@@ -92,7 +92,7 @@ public class WindowBuilder {
         window[0] = sb.toString();
     }
 
-    private void buildWindowMiddle() {
+    private void buildPanelMiddle() {
         
         for (int i = 0; i < height; i++) {
             sb = new StringBuilder();
@@ -109,7 +109,7 @@ public class WindowBuilder {
         }
     }
 
-    private void buildWindowBottom() {
+    private void buildPanelBottom() {
         sb = new StringBuilder();
 
         sb.append(borderCharacters[4]); // Bottom-left corner

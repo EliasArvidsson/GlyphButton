@@ -16,15 +16,18 @@ import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.InfoCmp.Capability;
 
 import glyphbutton.draw.DrawToTerminal;
+import glyphbutton.panel.overlay.Overlay;
+import glyphbutton.panel.overlay.*;
+import glyphbutton.panel.window.Window;
 import glyphbutton.styles.BorderStyles;
 import glyphbutton.widgets.ButtonWidget;
-import glyphbutton.window.*;
 
 public class TerminalGuiLogic {
 
     private final Terminal terminal;
     private final LineReader reader;
     private final List<Window> windows = new ArrayList<>();
+    private final List<Overlay> overlays = new ArrayList<>();
 
     private KeyMap<Binding> keyMap;
 
@@ -45,6 +48,8 @@ public class TerminalGuiLogic {
 
         clearScreen();
         initWindows();
+
+        initOverlays(); // <---
 
         this.keyMap = reader.getKeyMaps().get(LineReader.MAIN);
         setupWindowKeyBindings();
@@ -147,7 +152,7 @@ public class TerminalGuiLogic {
 
     private void drawWindows() {
 
-        dtt.draw(windows, focus, focusedWindow, focusedWidget, false, margin);
+        dtt.draw(windows, overlays, focus, focusedWindow, focusedWidget, false, margin);
 
     }
 
@@ -186,6 +191,19 @@ public class TerminalGuiLogic {
         window1.addWidget(buttonWidget);
 
         addWindow(window1);
+
+        Window window2 = new Window(80, 15, "Window 1");
+
+        addWindow(window2);
+    }
+
+    private void initOverlays() {
+
+        Popup popup1 = new Popup(40, 6, "Popup 1");
+
+        popup1.setPosition(OverlayPosition.CENTER);
+
+        overlays.add(popup1);
 
     }
 
